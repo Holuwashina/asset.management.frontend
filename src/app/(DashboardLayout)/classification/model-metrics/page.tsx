@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React from "react"; // Removed useEffect as it wasn't used
 import {
   Box,
   Table,
@@ -9,7 +9,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Typography,
 } from "@mui/material";
 import { Bar } from "react-chartjs-2";
 import {
@@ -27,27 +26,34 @@ import ComparisonTable from "../../components/dashboard/ConfusionMatrixTable";
 // Initialize Chart.js
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
+// Define TypeScript interfaces
+interface ConfusionMatrixData {
+  TP: number;
+  FN: number;
+  FP: number;
+  TN: number;
+}
+
+interface ModelMetrics {
+  precision: number;
+  recall: number;
+  f1Score: number;
+}
+
+interface ModelMetricsData {
+  models: string[];
+  metrics: string[];
+  results: {
+    [key: string]: ModelMetrics; // Flexible structure for metrics
+  };
+}
+
 const confusionMatrixData = {
   models: ["Decision Tree", "Random Forest", "Ensemble Model"],
   confusionMatrices: [
-    {
-      TP: 64,
-      FN: 16,
-      FP: 11,
-      TN: 9,
-    },
-    {
-      TP: 83,
-      FN: 8,
-      FP: 10,
-      TN: 0,
-    },
-    {
-      TP: 90,
-      FN: 5,
-      FP: 9,
-      TN: 0,
-    },
+    { TP: 64, FN: 16, FP: 11, TN: 9 },
+    { TP: 83, FN: 8, FP: 10, TN: 0 },
+    { TP: 90, FN: 5, FP: 9, TN: 0 },
   ],
 };
 
@@ -61,43 +67,16 @@ const dummyData = {
   },
 };
 
-// Define types for the metrics and results
-interface Metrics {
-  precision: number;
-  recall: number;
-  f1Score: number;
-}
-
-interface DummyData {
-  metrics: string[];
-  models: string[];
-  results: Record<string, Metrics>; // Record of model names to their metrics
-}
-
-// Sample data with the defined type
-const modelMetrics: DummyData = {
+const modelMetrics: ModelMetricsData = {
   metrics: ["Precision", "Recall", "F1-Score"],
   models: ["Decision Tree", "Random Forest", "Ensemble Model"],
   results: {
-    "Decision Tree": {
-      precision: 0.85,
-      recall: 0.8,
-      f1Score: 0.82,
-    },
-    "Random Forest": {
-      precision: 0.89,
-      recall: 0.91,
-      f1Score: 0.9,
-    },
-    "Ensemble Model": {
-      precision: 0.92,
-      recall: 0.95,
-      f1Score: 0.93,
-    },
+    "Decision Tree": { precision: 0.85, recall: 0.8, f1Score: 0.82 },
+    "Random Forest": { precision: 0.89, recall: 0.91, f1Score: 0.9 },
+    "Ensemble Model": { precision: 0.92, recall: 0.95, f1Score: 0.93 },
   },
 };
 
-// Custom styled TableCell for beautiful design
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${TableCell}`]: {
     backgroundColor: theme.palette.primary.main,
@@ -110,16 +89,12 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const MetricsTable = () => {
-  // Find the index of the best performing model based on the highest F1-Score
   const bestModelIndex = dummyData.metrics.f1Score.indexOf(
     Math.max(...dummyData.metrics.f1Score)
   );
-  const bestModel = dummyData.models[bestModelIndex];
-  const bestF1Score = Math.max(...dummyData.metrics.f1Score);
 
-  // Chart Data for all models
   const allModelsData = {
-    labels: ["Precision", "Recall", "F1-Score"], // Metrics on the x-axis
+    labels: ["Precision", "Recall", "F1-Score"],
     datasets: [
       {
         label: "Decision Tree",
@@ -151,7 +126,6 @@ const MetricsTable = () => {
     ],
   };
 
-  // Chart Data for Highlighted Best Performing Model
   const bestModelData = {
     labels: dummyData.models,
     datasets: [
@@ -169,7 +143,6 @@ const MetricsTable = () => {
 
   return (
     <Box sx={{ padding: 4 }}>
-      {/* Title Section */}
       <h3>Model Metrics</h3>
 
       <TableContainer
@@ -225,7 +198,7 @@ const MetricsTable = () => {
             },
             scales: {
               x: {
-                stacked: false, // Change to true if you want a stacked bar
+                stacked: false,
               },
               y: {
                 beginAtZero: true,
@@ -251,8 +224,8 @@ const MetricsTable = () => {
           </div>
         ))}
         <div>
-          <h3>Confussion Matrix Table</h3>
-        <ComparisonTable confusionMatrixData={confusionMatrixData} />
+          <h3>Confusion Matrix Table</h3>
+          <ComparisonTable confusionMatrixData={confusionMatrixData} />
         </div>
       </Box>
     </Box>

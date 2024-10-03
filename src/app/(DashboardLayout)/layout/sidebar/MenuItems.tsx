@@ -87,7 +87,7 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Model Metrics",
+    title: "Metrics",
     icon: IconRecharging,
     href: "/classification/model-metrics",
   },
