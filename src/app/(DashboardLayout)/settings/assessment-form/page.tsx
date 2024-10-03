@@ -59,7 +59,7 @@ const AddAssessmentForm = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!category || !question) {
-      return; // You can add validation logic or display an error message here
+      return; // Add validation logic or error message display here
     }
 
     try {
@@ -154,4 +154,4 @@ const AddAssessmentForm = () => {
   );
 };
 
-export default AddAssessmentForm;
+export default AddAssessmentForm; 
