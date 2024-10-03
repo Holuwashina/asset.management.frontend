@@ -21,7 +21,7 @@ import { SnackbarProvider, VariantType, useSnackbar } from "notistack";
 import { useRouter } from "next/navigation";
 
 // GraphQL Queries and Mutations
-export const GET_ASSESSMENT_CATEGORIES = gql`
+const GET_ASSESSMENT_CATEGORIES = gql`
   query GetAssessmentCategories {
     assessmentCategories {
       id
@@ -30,7 +30,7 @@ export const GET_ASSESSMENT_CATEGORIES = gql`
   }
 `;
 
-export const ADD_ASSESSMENT_QUESTION = gql`
+const ADD_ASSESSMENT_QUESTION = gql`
   mutation AddAssessmentQuestion($categoryId: ID!, $questionText: String!) {
     createAssessmentQuestion(
       input: { categoryId: $categoryId, questionText: $questionText }
