@@ -1,5 +1,5 @@
 "use client";
-import React from "react"; // Removed useEffect as it wasn't used
+import React, { useEffect } from "react"; // Removed useEffect as it wasn't used
 import {
   Box,
   Table,
@@ -10,7 +10,13 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import { Bar } from "react-chartjs-2";
+import dynamic from "next/dynamic"; // Import dynamic from next/dynamic
+
+// Dynamically import Bar chart to avoid SSR issues
+const Bar = dynamic(() => import("react-chartjs-2").then(mod => mod.Bar), {
+  ssr: false,
+});
+
 import {
   Chart as ChartJS,
   BarElement,
@@ -140,6 +146,11 @@ const MetricsTable = () => {
       },
     ],
   };
+
+  useEffect(() => {
+    // Any initialization code that requires a browser environment can go here.
+    // This could include initializing other charts or libraries if needed
+  }, []);
 
   return (
     <Box sx={{ padding: 4 }}>
