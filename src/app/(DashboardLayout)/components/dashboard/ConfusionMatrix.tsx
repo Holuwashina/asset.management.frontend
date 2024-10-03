@@ -1,4 +1,4 @@
-// ConfusionMatrix.js
+"use client"
 import React from 'react';
 import Plot from 'react-plotly.js';
 
