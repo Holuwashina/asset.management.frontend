@@ -4,12 +4,32 @@ import React, { useEffect, useState } from "react";
 import { Table } from "typescript-table";
 import { ExportDataComponent } from "typescript-exportdata";
 import { Column } from "typescript-table/dist/components/Table";
-
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { useConfirm } from "material-ui-confirm";
 import { useSnackbar } from "notistack";
 import { useRouter } from "next/navigation";
-import CircularProgress from "@mui/material/CircularProgress"; // MUI spinner
+import CircularProgress from "@mui/material/CircularProgress";
+
+// Define the data structure for assets
+interface Asset {
+  id: string;
+  asset: string;
+  assetType: string;
+  availability?: number;
+  confidentiality?: number;
+  integrity?: number;
+  riskIndex?: number;
+  ownerDepartment: {
+    id: string;
+    name: string;
+  };
+  assetValue: {
+    id: string;
+    qualitativeValue: string;
+  };
+  classification: string;
+  description: string;
+}
 
 const GET_ASSETS_LISTING = gql`
   query GetAssetsListing {
@@ -49,14 +69,14 @@ const MyTableComponent: React.FC = () => {
   const [deleteAsset] = useMutation(DELETE_ASSET, {
     refetchQueries: [{ query: GET_ASSETS_LISTING }],
   });
-  const [assetData, setAssetData] = useState([]);
-  const [isClassifying, setIsClassifying] = useState(false); // Track classification status
+  const [assetData, setAssetData] = useState<Asset[]>([]);
+  const [isClassifying, setIsClassifying] = useState(false);
   const confirm = useConfirm();
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
 
   useEffect(() => {
-    refetch(); // Trigger refetch on mount
+    refetch();
   }, [refetch]);
 
   useEffect(() => {
@@ -68,7 +88,33 @@ const MyTableComponent: React.FC = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const datasExample = assetData.map((asset: any) => {
+  // Helper function to determine classification level based on risk index
+  const getClassificationLevel = (riskIndex?: number): string => {
+    if (riskIndex === undefined) return "Unknown";
+    if (riskIndex <= 0.2) return "Public";
+    if (riskIndex <= 0.5) return "Internal";
+    if (riskIndex <= 0.7) return "Confidential";
+    if (riskIndex <= 0.9) return "Highly Confidential";
+    return "Restricted";
+  };
+
+  // Helper function to determine asset labeling based on classification level
+  const assetLabeling = (classificationLevel: string): string => {
+    switch (classificationLevel) {
+      case "Public":
+      case "Internal":
+      case "Confidential":
+        return "Non-Critical";
+      case "Highly Confidential":
+      case "Restricted":
+        return "Critical";
+      default:
+        return "Non-Critical"; // Default label for unknown classification
+    }
+  };
+
+  const datasExample = assetData.map((asset: Asset) => {
+    const classificationLevel = getClassificationLevel(asset.riskIndex);
     return {
       id: asset.id,
       assetName: asset.asset,
@@ -81,6 +127,8 @@ const MyTableComponent: React.FC = () => {
       integrity: asset.integrity?.toFixed(2),
       availability: asset.availability?.toFixed(2),
       risk: asset.riskIndex?.toFixed(2),
+      classificationLevel,
+      labeling: assetLabeling(classificationLevel), // Use classification level for labeling
     };
   });
 
@@ -94,15 +142,17 @@ const MyTableComponent: React.FC = () => {
     { label: "Integrity Score", property: "integrity" },
     { label: "Availability Score", property: "availability" },
     { label: "Risk Index", property: "risk" },
+    { label: "Classification Level", property: "classificationLevel" },
+    { label: "Asset Labeling", property: "labeling" }, // Column for asset labeling
   ];
 
-  const handleArchiveRow = (id: number | string) => {
-    setIsClassifying(true); // Start spinner
+  const handleArchiveRow = (id: string | number) => {
+    setIsClassifying(true);
     router.push(`/classification/asset-assessment?id=${id}`);
-    setIsClassifying(false); // Stop spinner immediately after navigation
+    setIsClassifying(false);
   };
 
-  const handleDeleteRow = async (id: number | string) => {
+  const handleDeleteRow = async (id: string | number) => {
     confirm({
       description:
         "Warning: You are about to delete the asset. This action is permanent and cannot be reversed. Do you wish to continue?",
@@ -130,10 +180,10 @@ const MyTableComponent: React.FC = () => {
         </div>
       )}
       <Table
-        background="#1976d2" //change background button and dropdown
-        color="#fff" //change color button and dropdown
-        hoverBackground="#1565c0" //change background :hover button and dropdown
-        selectedRowsBackground="#1976d2" //change background selected rows
+        background="#1976d2"
+        color="#fff"
+        hoverBackground="#1565c0"
+        selectedRowsBackground="#1976d2"
         data={datasExample}
         columns={columnsExample}
         archiveRowColumnVisible
@@ -142,9 +192,9 @@ const MyTableComponent: React.FC = () => {
         handleDeleteRow={handleDeleteRow}
         renderExportDataComponent={(filteredData, columnsManaged) => (
           <ExportDataComponent
-            background="#1976d2" //change background button and dropdown
-            color="#fff" //change color button and dropdown
-            hoverBackground="#1565c0" //change background :hover button and dropdown
+            background="#1976d2"
+            color="#fff"
+            hoverBackground="#1565c0"
             filteredData={filteredData}
             columnsManaged={columnsManaged}
             headerProperty="label"
